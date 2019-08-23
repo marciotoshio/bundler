@@ -13,7 +13,7 @@ module Bundler
       # Ask for X gems per API request
       API_REQUEST_SIZE = 50
 
-      attr_reader :remotes, :caches
+      attr_reader :remotes
 
       def initialize(options = {})
         @options = options
@@ -21,9 +21,12 @@ module Bundler
         @dependency_names = []
         @allow_remote = false
         @allow_cached = false
-        @caches = [cache_path, *Bundler.rubygems.gem_cache]
 
         Array(options["remotes"] || []).reverse_each {|r| add_remote(r) }
+      end
+
+      def caches
+        @caches ||= [cache_path, *Bundler.rubygems.gem_cache]
       end
 
       def remote!
@@ -321,7 +324,7 @@ module Bundler
       end
 
       def cached_path(spec)
-        possibilities = @caches.map {|p| "#{p}/#{spec.file_name}" }
+        possibilities = caches.map {|p| "#{p}/#{spec.file_name}" }
         possibilities.find {|p| File.exist?(p) }
       end
 

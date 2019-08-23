@@ -93,7 +93,6 @@ RSpec.describe Bundler::LockfileParser do
   end
 
   describe "#initialize" do
-    before { allow(Bundler::SharedHelpers).to receive(:find_gemfile).and_return(bundled_app("gems.rb")) }
     subject { described_class.new(lockfile_contents) }
 
     let(:sources) do
