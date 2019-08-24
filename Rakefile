@@ -32,7 +32,7 @@ namespace :spec do
 
   desc "Run parallel specs"
   task :parallel do
-    sh("bin/parallel_rspec --test-options '--tag ~needs_chdir' spec/")
+    sh("bin/parallel_rspec --verbose --test-options '--tag ~needs_chdir' spec/")
   end
 
   desc "Run sequential specs"
