@@ -145,12 +145,11 @@ RSpec.describe "when using sudo", :sudo => true do
       sudo "mkdir -p #{gem_home}"
       sudo "chmod ugo-w #{gem_home}"
 
-      gemfile <<-G
+      install_gemfile <<-G, :env => { "GEM_HOME" => gem_home.to_s, "GEM_PATH" => nil }
         source "#{file_uri_for(gem_repo1)}"
         gem "rack", '1.0'
       G
 
-      bundle :install, :env => { "GEM_HOME" => gem_home.to_s, "GEM_PATH" => nil }
       expect(gem_home.join("bin/rackup")).to exist
       expect(the_bundle).to include_gems "rack 1.0", :env => { "GEM_HOME" => gem_home.to_s, "GEM_PATH" => nil }
 
