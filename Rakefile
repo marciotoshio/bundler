@@ -100,15 +100,7 @@ namespace :spec do
     releases = %w[v2.5.2 v2.6.14 v2.7.10 v3.0.6]
     (branches + releases).each do |rg|
       desc "Run specs with RubyGems #{rg}"
-      task "parallel_#{rg}" do
-        sh("bin/parallel_rspec --test-options '--tag ~needs_chdir' spec/")
-      end
-
-      task "sequential_#{rg}" do
-        sh("bin/rspec --tag needs_chdir --format progress")
-      end
-
-      task rg => ["parallel_#{rg}", "sequential_#{rg}"]
+      task rg => ["set_#{rg}", :spec]
 
       # Create tasks like spec:rubygems:v1.8.3:sudo to run the sudo specs
       namespace rg do
@@ -120,14 +112,11 @@ namespace :spec do
         ENV["RGV"] = rg
       end
 
-      task rg => ["set_#{rg}"]
       task "rubygems:all" => rg
     end
 
     desc "Run specs under a RubyGems checkout (set RGV=path)"
-    task "co" do
-      sh("bin/parallel_rspec spec/")
-    end
+    task "co" => ["setup_co", :spec]
 
     namespace "co" do
       task :sudo => ["set_sudo", "co"]
@@ -142,7 +131,6 @@ namespace :spec do
       end
     end
 
-    task "co" => "setup_co"
     task "rubygems:all" => "co"
   end
 
