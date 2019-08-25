@@ -37,7 +37,11 @@ namespace :spec do
 
   desc "Run sequential specs"
   task :sequential do
-    sh("bin/rspec --tag needs_chdir --format progress")
+    sh("bin/rspec --tag needs_chdir")
+  end
+
+  task :all do
+    sh("bin/rspec")
   end
 
   desc "Ensure spec dependencies are installed"
@@ -87,7 +91,7 @@ namespace :spec do
   end
 
   desc "Run the spec suite with the sudo tests"
-  task :sudo => %w[set_sudo spec]
+  task :sudo => %w[set_sudo spec:all]
 
   task :set_sudo do
     ENV["BUNDLER_SUDO_TESTS"] = "1"
@@ -104,7 +108,7 @@ namespace :spec do
 
       # Create tasks like spec:rubygems:v1.8.3:sudo to run the sudo specs
       namespace rg do
-        task :sudo => ["set_sudo", rg]
+        task :sudo => ["set_sudo", "set_#{rg}", "spec:all"]
         task :realworld => ["set_realworld", rg]
       end
 
