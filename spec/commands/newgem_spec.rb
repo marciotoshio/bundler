@@ -216,11 +216,9 @@ RSpec.describe "bundle gem" do
 
     prepare_gemspec(bundled_app("newgem", "newgem.gemspec"))
 
-    Dir.chdir(bundled_app("newgem")) do
-      gems = ["rake-12.3.2"]
-      system_gems gems, :path => :bundle_path
-      bundle! "exec rake build"
-    end
+    gems = ["rake-12.3.2"]
+    system_gems gems, :path => :bundle_path, :bundle_dir => bundled_app("newgem")
+    bundle! "exec rake build", :dir => bundled_app("newgem")
 
     expect(last_command.stdboth).not_to include("ERROR")
   end
@@ -233,7 +231,7 @@ RSpec.describe "bundle gem" do
     it "resolves ." do
       create_temporary_dir("tmp")
 
-      bundle "gem ."
+      bundle "gem .", :dir => bundled_app("tmp")
 
       expect(bundled_app("tmp/lib/tmp.rb")).to exist
     end
@@ -241,7 +239,7 @@ RSpec.describe "bundle gem" do
     it "resolves .." do
       create_temporary_dir("temp/empty_dir")
 
-      bundle "gem .."
+      bundle "gem ..", :dir => bundled_app("temp/empty_dir")
 
       expect(bundled_app("temp/lib/temp.rb")).to exist
     end
@@ -249,14 +247,13 @@ RSpec.describe "bundle gem" do
     it "resolves relative directory" do
       create_temporary_dir("tmp/empty/tmp")
 
-      bundle "gem ../../empty"
+      bundle "gem ../../empty", :dir => bundled_app("tmp/empty/tmp")
 
       expect(bundled_app("tmp/empty/lib/empty.rb")).to exist
     end
 
     def create_temporary_dir(dir)
-      FileUtils.mkdir_p(dir)
-      Dir.chdir(dir)
+      FileUtils.mkdir_p(bundled_app(dir))
     end
   end
 
@@ -294,9 +291,8 @@ RSpec.describe "bundle gem" do
 
     context "git config user.{name,email} is not set" do
       before do
-        `git config --unset user.name`
-        `git config --unset user.email`
-        in_app_root
+        sys_exec("git config --unset user.name", :dir => bundled_app)
+        sys_exec("git config --unset user.email", :dir => bundled_app)
         bundle "gem #{gem_name}"
       end
 
@@ -334,10 +330,8 @@ RSpec.describe "bundle gem" do
         file.puts rakefile
       end
 
-      Dir.chdir(bundled_app(gem_name)) do
-        sys_exec(rake)
-        expect(out).to include("SUCCESS")
-      end
+      sys_exec(rake, :dir => bundled_app(gem_name))
+      expect(out).to include("SUCCESS")
     end
 
     context "--exe parameter set" do
@@ -522,7 +516,7 @@ RSpec.describe "bundle gem" do
       it "opens the generated gemspec in the user's text editor" do
         in_app_root
         output = bundle "gem #{gem_name} --edit=echo"
-        gemspec_path = File.join(Dir.pwd, gem_name, "#{gem_name}.gemspec")
+        gemspec_path = File.join(bundled_app, gem_name, "#{gem_name}.gemspec")
         expect(output).to include("echo \"#{gemspec_path}\"")
       end
     end
@@ -586,8 +580,8 @@ RSpec.describe "bundle gem" do
 
     context "git config user.{name,email} is not set" do
       before do
-        `git config --unset user.name`
-        `git config --unset user.email`
+        sys_exec("git config --unset user.name", :dir => bundled_app)
+        sys_exec("git config --unset user.email", :dir => bundled_app)
         in_app_root
         bundle "gem #{gem_name}"
       end
@@ -611,10 +605,8 @@ RSpec.describe "bundle gem" do
         file.puts rakefile
       end
 
-      Dir.chdir(bundled_app(gem_name)) do
-        sys_exec(rake)
-        expect(out).to include("SUCCESS")
-      end
+      sys_exec(rake, :dir => bundled_app(gem_name))
+      expect(out).to include("SUCCESS")
     end
 
     context "--bin parameter set" do
@@ -880,9 +872,7 @@ Usage: "bundle gem NAME [OPTIONS]"
 
   context "on conflicts with a previously created file" do
     it "should fail gracefully" do
-      in_app_root do
-        FileUtils.touch("conflict-foobar")
-      end
+      FileUtils.touch(bundled_app("conflict-foobar"))
       bundle "gem conflict-foobar"
       expect(err).to include("Errno::ENOTDIR")
       expect(exitstatus).to eql(32) if exitstatus
@@ -891,9 +881,7 @@ Usage: "bundle gem NAME [OPTIONS]"
 
   context "on conflicts with a previously created directory" do
     it "should succeed" do
-      in_app_root do
-        FileUtils.mkdir_p("conflict-foobar/Gemfile")
-      end
+      FileUtils.mkdir_p(bundled_app("conflict-foobar/Gemfile"))
       bundle! "gem conflict-foobar"
       expect(out).to include("file_clash  conflict-foobar/Gemfile").
         and include "Initializing git repo in #{bundled_app("conflict-foobar")}"

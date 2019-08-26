@@ -78,8 +78,9 @@ module Bundler
       gem = ENV["GEM_COMMAND"] ? ENV["GEM_COMMAND"] : "gem"
       sh("#{gem} build -V #{spec_path}".shellsplit) do
         file_name = File.basename(built_gem_path)
-        SharedHelpers.filesystem_access(File.join(base, "pkg")) {|p| FileUtils.mkdir_p(p) }
-        FileUtils.mv(built_gem_path, "pkg")
+        pkg_path = File.join(base, "pkg")
+        SharedHelpers.filesystem_access(pkg_path) {|p| FileUtils.mkdir_p(p) }
+        FileUtils.mv(built_gem_path, pkg_path)
         Bundler.ui.confirm "#{name} #{version} built to pkg/#{file_name}."
       end
       File.join(base, "pkg", file_name)
@@ -182,9 +183,7 @@ module Bundler
 
     def sh_with_input(cmd)
       Bundler.ui.debug(cmd)
-      SharedHelpers.chdir(base) do
-        abort unless Kernel.system(*cmd)
-      end
+      abort unless Kernel.system(*cmd, :dir => base)
     end
 
     def sh(cmd, &block)
@@ -198,12 +197,10 @@ module Bundler
 
     def sh_with_status(cmd, &block)
       Bundler.ui.debug(cmd)
-      SharedHelpers.chdir(base) do
-        outbuf = IO.popen(cmd, :err => [:child, :out], &:read)
-        status = $?
-        block.call(outbuf) if status.success? && block
-        [outbuf, status]
-      end
+      require "open3"
+      outbuf, status = Open3.capture2e(*cmd, :chdir => base)
+      block.call(outbuf) if status.success? && block
+      [outbuf, status]
     end
 
     def gem_key

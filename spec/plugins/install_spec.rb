@@ -287,21 +287,16 @@ RSpec.describe "bundler plugin install" do
         end
 
         # outside the app
-        Dir.chdir tmp
-        bundle "plugin install fubar --source #{file_uri_for(gem_repo2)}"
+        bundle "plugin install fubar --source #{file_uri_for(gem_repo2)}", :dir => tmp
       end
 
       it "inside the app takes precedence over global plugin" do
-        Dir.chdir bundled_app
-
         bundle "shout"
         expect(out).to eq("local_one")
       end
 
       it "outside the app global plugin is used" do
-        Dir.chdir tmp
-
-        bundle "shout"
+        bundle "shout", :dir => tmp
         expect(out).to eq("global_one")
       end
     end

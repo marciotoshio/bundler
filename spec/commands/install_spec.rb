@@ -500,23 +500,20 @@ RSpec.describe "bundle install with gem sources" do
   end
 
   describe "when Bundler root contains regex chars" do
-    before do
+    it "doesn't blow up" do
       root_dir = tmp("foo[]bar")
 
       FileUtils.mkdir_p(root_dir)
-      in_app_root_custom(root_dir)
-    end
 
-    it "doesn't blow up" do
       build_lib "foo"
       gemfile = <<-G
         gem 'foo', :path => "#{lib_path("foo-1.0")}"
       G
-      File.open("Gemfile", "w") do |file|
+      File.open("#{root_dir}/Gemfile", "w") do |file|
         file.puts gemfile
       end
 
-      bundle :install
+      bundle :install, :dir => root_dir
 
       expect(exitstatus).to eq(0) if exitstatus
     end

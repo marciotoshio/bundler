@@ -147,7 +147,7 @@ module Spec
       end.join
 
       cmd = "#{sudo} #{Gem.ruby} #{load_path_str} #{requires_str} #{bundle_bin} #{cmd}#{args}"
-      sys_exec(cmd, env) {|i, o, thr| yield i, o, thr if block_given? }
+      sys_exec(cmd, env, :dir => dir) {|i, o, thr| yield i, o, thr if block_given? }
     end
     bang :bundle
 
@@ -175,9 +175,10 @@ module Spec
 
     def ruby(ruby, options = {})
       env = (options.delete(:env) || {}).map {|k, v| "#{k}='#{v}' " }.join
+      dir = options.delete(:dir) || bundled_app
       ruby = ruby.gsub(/["`\$]/) {|m| "\\#{m}" }
       lib_option = options[:no_lib] ? "" : " -I#{lib}"
-      sys_exec(%(#{env}#{Gem.ruby}#{lib_option} -e "#{ruby}"))
+      sys_exec(%(#{env}#{Gem.ruby}#{lib_option} -e "#{ruby}"), :dir => dir)
     end
     bang :ruby
 
@@ -191,17 +192,17 @@ module Spec
       R
     end
 
-    def gembin(cmd)
+    def gembin(cmd, dir: bundled_app)
       old = ENV["RUBYOPT"]
       ENV["RUBYOPT"] = "#{ENV["RUBYOPT"]} -I#{lib}"
       cmd = bundled_app("bin/#{cmd}") unless cmd.to_s.include?("/")
-      sys_exec(cmd.to_s)
+      sys_exec(cmd.to_s, :dir => dir)
     ensure
       ENV["RUBYOPT"] = old
     end
 
-    def gem_command(command, args = "")
-      sys_exec("#{Path.gem_bin} #{command} #{args}")
+    def gem_command(command, args = "", dir: root)
+      sys_exec("#{Path.gem_bin} #{command} #{args}", :dir => dir)
     end
     bang :gem_command
 
@@ -209,12 +210,12 @@ module Spec
       "#{Gem.ruby} -S #{ENV["GEM_PATH"]}/bin/rake"
     end
 
-    def sys_exec(cmd, env = {})
-      command_execution = CommandExecution.new(cmd.to_s, Dir.pwd)
+    def sys_exec(cmd, env = {}, dir: bundled_app)
+      command_execution = CommandExecution.new(cmd.to_s, dir)
 
       env = env.map {|k, v| [k.to_s, v.to_s] }.to_h # convert env keys and values to string
 
-      Open3.popen3(env, cmd.to_s) do |stdin, stdout, stderr, wait_thr|
+      Open3.popen3(env, cmd.to_s, :chdir => dir) do |stdin, stdout, stderr, wait_thr|
         yield stdin, stdout, wait_thr if block_given?
         stdin.close
 
@@ -256,7 +257,7 @@ module Spec
       contents = args.shift
 
       if contents.nil?
-        File.open("Gemfile", "r", &:read)
+        File.open(bundled_app("Gemfile"), "r", &:read)
       else
         create_file("Gemfile", contents, *args)
       end
@@ -266,7 +267,7 @@ module Spec
       contents = args.shift
 
       if contents.nil?
-        File.open("Gemfile.lock", "r", &:read)
+        File.open(bundled_app_lock, "r", &:read)
       else
         create_file("Gemfile.lock", contents, *args)
       end
@@ -315,7 +316,7 @@ module Spec
 
     def with_built_bundler
       with_root_gemspec do |gemspec|
-        Dir.chdir(root) { gem_command! :build, gemspec.to_s }
+        gem_command! :build, gemspec.to_s, :dir => root
       end
 
       bundler_path = root + "bundler-#{Bundler::VERSION}.gem"
@@ -373,7 +374,8 @@ module Spec
       opts = gems.last.is_a?(Hash) ? gems.last : {}
       path = opts.fetch(:path, system_gem_path)
       if path == :bundle_path
-        path = ruby!(<<-RUBY)
+        bundle_dir = opts.fetch(:bundle_dir, bundled_app)
+        path = ruby!(<<-RUBY, :dir => bundle_dir)
           require "bundler"
           begin
             puts Bundler.bundle_path
@@ -510,7 +512,7 @@ module Spec
     end
 
     def revision_for(path)
-      Dir.chdir(path) { `git rev-parse HEAD`.strip }
+      sys_exec("git rev-parse HEAD", :dir => path).strip
     end
 
     def capture_output
