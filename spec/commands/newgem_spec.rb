@@ -169,7 +169,6 @@ RSpec.describe "bundle gem" do
     context "git config github.user is absent" do
       before do
         sys_exec("git config --unset github.user")
-        in_app_root
         bundle "gem #{gem_name}"
       end
 
@@ -181,7 +180,6 @@ RSpec.describe "bundle gem" do
   end
 
   it "creates a new git repository" do
-    in_app_root
     bundle "gem test_gem"
     expect(bundled_app("test_gem/.git")).to exist
   end
@@ -211,7 +209,6 @@ RSpec.describe "bundle gem" do
   end
 
   it "generates a valid gemspec" do
-    in_app_root
     bundle! "gem newgem --bin"
 
     prepare_gemspec(bundled_app("newgem", "newgem.gemspec"))
@@ -224,10 +221,6 @@ RSpec.describe "bundle gem" do
   end
 
   context "gem naming with relative paths" do
-    before do
-      in_app_root
-    end
-
     it "resolves ." do
       create_temporary_dir("tmp")
 
@@ -326,6 +319,7 @@ RSpec.describe "bundle gem" do
           puts 'SUCCESS'
         end
       RAKEFILE
+
       File.open(bundled_app("test_gem/Rakefile"), "w") do |file|
         file.puts rakefile
       end
@@ -336,7 +330,6 @@ RSpec.describe "bundle gem" do
 
     context "--exe parameter set" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --exe"
       end
 
@@ -351,7 +344,6 @@ RSpec.describe "bundle gem" do
 
     context "--bin parameter set" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --bin"
       end
 
@@ -366,7 +358,6 @@ RSpec.describe "bundle gem" do
 
     context "no --test parameter" do
       before do
-        in_app_root
         bundle "gem #{gem_name}"
       end
 
@@ -381,7 +372,6 @@ RSpec.describe "bundle gem" do
 
     context "--test parameter set to rspec" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --test=rspec"
       end
 
@@ -392,13 +382,11 @@ RSpec.describe "bundle gem" do
       end
 
       it "depends on a specific version of rspec in generated Gemfile" do
-        Dir.chdir(bundled_app("test_gem")) do
-          builder = Bundler::Dsl.new
-          builder.eval_gemfile(bundled_app("test_gem/Gemfile"))
-          builder.dependencies
-          rspec_dep = builder.dependencies.find {|d| d.name == "rspec" }
-          expect(rspec_dep).to be_specific
-        end
+        builder = Bundler::Dsl.new
+        builder.eval_gemfile(bundled_app("test_gem/Gemfile"))
+        builder.dependencies
+        rspec_dep = builder.dependencies.find {|d| d.name == "rspec" }
+        expect(rspec_dep).to be_specific
       end
 
       it "requires 'test-gem'" do
@@ -412,7 +400,6 @@ RSpec.describe "bundle gem" do
 
     context "gem.test setting set to rspec" do
       before do
-        in_app_root
         bundle "config set gem.test rspec"
         bundle "gem #{gem_name}"
       end
@@ -426,7 +413,6 @@ RSpec.describe "bundle gem" do
 
     context "gem.test setting set to rspec and --test is set to minitest" do
       before do
-        in_app_root
         bundle "config set gem.test rspec"
         bundle "gem #{gem_name} --test=minitest"
       end
@@ -439,18 +425,15 @@ RSpec.describe "bundle gem" do
 
     context "--test parameter set to minitest" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --test=minitest"
       end
 
       it "depends on a specific version of minitest" do
-        Dir.chdir(bundled_app("test_gem")) do
-          builder = Bundler::Dsl.new
-          builder.eval_gemfile(bundled_app("test_gem/Gemfile"))
-          builder.dependencies
-          minitest_dep = builder.dependencies.find {|d| d.name == "minitest" }
-          expect(minitest_dep).to be_specific
-        end
+        builder = Bundler::Dsl.new
+        builder.eval_gemfile(bundled_app("test_gem/Gemfile"))
+        builder.dependencies
+        minitest_dep = builder.dependencies.find {|d| d.name == "minitest" }
+        expect(minitest_dep).to be_specific
       end
 
       it "builds spec skeleton" do
@@ -473,7 +456,6 @@ RSpec.describe "bundle gem" do
 
     context "gem.test setting set to minitest" do
       before do
-        in_app_root
         bundle "config set gem.test minitest"
         bundle "gem #{gem_name}"
       end
@@ -498,7 +480,6 @@ RSpec.describe "bundle gem" do
 
     context "--test with no arguments" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --test"
       end
 
@@ -514,7 +495,6 @@ RSpec.describe "bundle gem" do
 
     context "--edit option" do
       it "opens the generated gemspec in the user's text editor" do
-        in_app_root
         output = bundle "gem #{gem_name} --edit=echo"
         gemspec_path = File.join(bundled_app, gem_name, "#{gem_name}.gemspec")
         expect(output).to include("echo \"#{gemspec_path}\"")
@@ -582,7 +562,6 @@ RSpec.describe "bundle gem" do
       before do
         sys_exec("git config --unset user.name", :dir => bundled_app)
         sys_exec("git config --unset user.email", :dir => bundled_app)
-        in_app_root
         bundle "gem #{gem_name}"
       end
 
@@ -611,7 +590,6 @@ RSpec.describe "bundle gem" do
 
     context "--bin parameter set" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --bin"
       end
 
@@ -626,7 +604,6 @@ RSpec.describe "bundle gem" do
 
     context "no --test parameter" do
       before do
-        in_app_root
         bundle "gem #{gem_name}"
       end
 
@@ -641,7 +618,6 @@ RSpec.describe "bundle gem" do
 
     context "--test parameter set to rspec" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --test=rspec"
       end
 
@@ -675,7 +651,6 @@ RSpec.describe "bundle gem" do
 
     context "--test parameter set to minitest" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --test=minitest"
       end
 
@@ -716,7 +691,6 @@ RSpec.describe "bundle gem" do
 
     context "--test with no arguments" do
       before do
-        in_app_root
         bundle "gem #{gem_name} --test"
       end
 
@@ -728,7 +702,6 @@ RSpec.describe "bundle gem" do
 
     context "--ext parameter set" do
       before do
-        in_app_root
         bundle "gem test_gem --ext"
       end
 
@@ -822,10 +795,6 @@ Usage: "bundle gem NAME [OPTIONS]"
   end
 
   context "on first run" do
-    before do
-      in_app_root
-    end
-
     it "asks about test framework" do
       global_config "BUNDLE_GEM__MIT" => "false", "BUNDLE_GEM__COC" => "false"
 

@@ -5,7 +5,7 @@ require "stringio"
 require "bundler/cli"
 require "bundler/cli/doctor"
 
-RSpec.describe "bundle doctor" do
+RSpec.describe "bundle doctor", :needs_chdir do
   before(:each) do
     install_gemfile! <<-G
       source "#{file_uri_for(gem_repo1)}"
@@ -28,7 +28,7 @@ RSpec.describe "bundle doctor" do
     expect(exitstatus).to eq(0)
   end
 
-  context "when all files in home are readable/writable" do
+  context "when all files in home are readable/writable", :needs_chdir do
     before(:each) do
       stat = double("stat")
       unwritable_file = double("file")
@@ -68,7 +68,7 @@ RSpec.describe "bundle doctor" do
     end
   end
 
-  context "when home contains files that are not readable/writable" do
+  context "when home contains files that are not readable/writable", :needs_chdir do
     before(:each) do
       @stat = double("stat")
       @unwritable_file = double("file")

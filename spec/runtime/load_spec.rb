@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Bundler.load" do
+RSpec.describe "Bundler.load", :needs_chdir do
   describe "with a gemfile" do
     before(:each) do
       install_gemfile! <<-G

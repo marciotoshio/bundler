@@ -2,7 +2,7 @@
 
 require "bundler/definition"
 
-RSpec.describe Bundler::Definition do
+RSpec.describe Bundler::Definition, :needs_chdir do
   describe "#lock" do
     before do
       allow(Bundler).to receive(:settings) { Bundler::Settings.new(".") }

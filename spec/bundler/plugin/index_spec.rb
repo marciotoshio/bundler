@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Bundler::Plugin::Index do
+RSpec.describe Bundler::Plugin::Index, :needs_chdir do
   Index = Bundler::Plugin::Index
 
   before do

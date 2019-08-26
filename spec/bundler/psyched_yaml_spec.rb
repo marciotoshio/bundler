@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "bundler/psyched_yaml"
-
 RSpec.describe "Bundler::YamlLibrarySyntaxError" do
   it "is raised on YAML parse errors" do
+    require "bundler/psyched_yaml"
+
     expect { YAML.parse "{foo" }.to raise_error(Bundler::YamlLibrarySyntaxError)
   end
 end

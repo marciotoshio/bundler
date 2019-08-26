@@ -93,7 +93,9 @@ RSpec.describe Bundler::LockfileParser do
   end
 
   describe "#initialize" do
-    subject { described_class.new(lockfile_contents) }
+    before { lockfile(lockfile_contents) }
+
+    subject { described_class.new(bundled_app_lock) }
 
     let(:sources) do
       [Bundler::Source::Git.new("uri" => "https://github.com/alloy/peiji-san.git", "revision" => "eca485d8dc95f12aaec1a434b49d295c7e91844b"),

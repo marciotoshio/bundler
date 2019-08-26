@@ -822,6 +822,10 @@ RSpec.describe "bundle update --ruby" do
 end
 
 RSpec.describe "bundle update --bundler" do
+  let(:the_bundle) do
+    super(:bundle_dir => bundled_app)
+  end
+
   it "updates the bundler version in the lockfile without re-resolving" do
     build_repo4 do
       build_gem "rack", "1.0"

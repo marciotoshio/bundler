@@ -215,6 +215,8 @@ RSpec.describe "real source plugins" do
       build_repo2 do
         build_plugin "bundler-source-gitp" do |s|
           s.write "plugins.rb", <<-RUBY
+            require "open3"
+
             class SPlugin < Bundler::Plugin::API
               source "gitp"
 

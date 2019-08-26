@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Bundler::Dsl do
+RSpec.describe Bundler::Dsl, :needs_chdir do
   before do
     @rubygems = double("rubygems")
     allow(Bundler::Source::Rubygems).to receive(:new) { @rubygems }

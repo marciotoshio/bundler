@@ -62,18 +62,6 @@ module Spec
       last_command.exitstatus
     end
 
-    def in_app_root(&blk)
-      Dir.chdir(bundled_app, &blk)
-    end
-
-    def in_app_root2(&blk)
-      Dir.chdir(bundled_app2, &blk)
-    end
-
-    def in_app_root_custom(root, &blk)
-      Dir.chdir(root, &blk)
-    end
-
     def run(cmd, *args)
       opts = args.last.is_a?(Hash) ? args.pop : {}
       groups = args.map(&:inspect).join(", ")
@@ -132,6 +120,8 @@ module Spec
       load_path << lib unless system_bundler
       load_path << spec
       load_path_str = "-I#{load_path.join(File::PATH_SEPARATOR)}"
+
+      dir = options.delete(:dir) || bundled_app
 
       args = options.map do |k, v|
         case v
@@ -550,10 +540,12 @@ module Spec
     end
 
     def process_file(pathname)
-      changed_lines = pathname.readlines.map do |line|
+      previous_content = pathname.readlines
+      changed_lines = previous_content.map do |line|
         yield line
       end
       File.open(pathname, "w") {|file| file.puts(changed_lines.join) }
+      previous_content.join
     end
 
     def with_env_vars(env_hash, &block)

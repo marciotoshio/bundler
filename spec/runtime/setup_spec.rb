@@ -495,9 +495,10 @@ RSpec.describe "Bundler.setup" do
     end
 
     it "finds git gem when default bundle path becomes read only" do
+      bundle "config path .bundle"
       bundle "install"
 
-      with_read_only("#{Bundler.bundle_path}/**/*") do
+      with_read_only("#{bundled_app(".bundle")}/**/*") do
         expect(the_bundle).to include_gems "rack 1.0.0"
       end
     end

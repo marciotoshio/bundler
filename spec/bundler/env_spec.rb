@@ -3,7 +3,7 @@
 require "openssl"
 require "bundler/settings"
 
-RSpec.describe Bundler::Env do
+RSpec.describe Bundler::Env, :needs_chdir do
   let(:git_proxy_stub) { Bundler::Source::Git::GitProxy.new(nil, nil, nil) }
 
   describe "#report" do

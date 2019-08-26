@@ -451,7 +451,6 @@ module Spec
 
       Array(versions).each do |version|
         spec = builder.new(self, name, version)
-        spec.authors = ["no one"] if !spec.authors || spec.authors.empty?
         yield spec if block_given?
         spec._build(options)
       end
@@ -650,14 +649,12 @@ module Spec
         path = options[:path] || _default_path
         source = options[:source] || "git@#{path}"
         super(options.merge(:path => path, :source => source))
-        Dir.chdir(path) do
-          `git init`
-          `git add *`
-          `git config user.email "lol@wut.com"`
-          `git config user.name "lolwut"`
-          `git config commit.gpgsign false`
-          `git commit -m "OMG INITIAL COMMIT"`
-        end
+        capture("git init", path)
+        capture("git add *", path)
+        capture("git config user.email \"lol@wut.com\"", path)
+        capture("git config user.name \"lolwut\"", path)
+        capture("git config commit.gpgsign false", path)
+        capture("git commit -m \"OMG INITIAL COMMIT\"", path)
       end
     end
 
@@ -737,8 +734,6 @@ module Spec
         destination = opts[:path] || _default_path
         FileUtils.mkdir_p(lib_path.join(destination))
 
-        @spec.authors = ["that guy"] if !@spec.authors || @spec.authors.empty?
-
         if opts[:gemspec] == :yaml || opts[:gemspec] == false
           Dir.chdir(lib_path) do
             Bundler.rubygems.build(@spec, opts[:skip_validation])
@@ -748,6 +743,7 @@ module Spec
         else
           @context.gem_command! :build, @spec.name, :dir => lib_path
         end
+
         gem_path = File.expand_path("#{@spec.full_name}.gem", lib_path)
         if opts[:to_system]
           @context.system_gems gem_path, :keep_path => true

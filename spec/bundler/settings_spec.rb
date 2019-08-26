@@ -2,7 +2,7 @@
 
 require "bundler/settings"
 
-RSpec.describe Bundler::Settings do
+RSpec.describe Bundler::Settings, :needs_chdir do
   subject(:settings) { described_class.new(bundled_app) }
 
   describe "#set_local" do

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "bundler source plugin" do
+RSpec.describe "bundler source plugin", :needs_chdir do
   describe "plugins dsl eval for #source with :type option" do
     before do
       update_repo2 do

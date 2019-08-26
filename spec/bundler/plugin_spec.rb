@@ -233,7 +233,7 @@ RSpec.describe Bundler::Plugin do
   end
 
   describe "#root" do
-    context "in app dir" do
+    context "in app dir", :needs_chdir do
       before do
         gemfile ""
       end
@@ -245,7 +245,6 @@ RSpec.describe Bundler::Plugin do
 
     context "outside app dir" do
       it "returns plugin dir in global bundle path" do
-        Dir.chdir tmp
         expect(subject.root).to eq(home.join(".bundle/plugin"))
       end
     end

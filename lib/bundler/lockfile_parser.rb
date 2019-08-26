@@ -65,9 +65,16 @@ module Bundler
 
       @rubygems_aggregate = Source::Rubygems.new
 
+      if File.exist?(lockfile)
+        lockfile_name = lockfile
+        lockfile = lockfile_name.read
+      else
+        lockfile_name = Bundler.default_lockfile
+      end
+
       if lockfile.match(/<<<<<<<|=======|>>>>>>>|\|\|\|\|\|\|\|/)
-        raise LockfileError, "Your #{Bundler.default_lockfile.relative_path_from(SharedHelpers.pwd)} contains merge conflicts.\n" \
-          "Run `git checkout HEAD -- #{Bundler.default_lockfile.relative_path_from(SharedHelpers.pwd)}` first to get a clean lock."
+        raise LockfileError, "Your #{lockfile_name.relative_path_from(SharedHelpers.pwd)} contains merge conflicts.\n" \
+          "Run `git checkout HEAD -- #{lockfile_name.relative_path_from(SharedHelpers.pwd)}` first to get a clean lock."
       end
 
       lockfile.split(/(?:\r?\n)+/).each do |line|
@@ -93,7 +100,7 @@ module Bundler
       warn_for_outdated_bundler_version
     rescue ArgumentError => e
       Bundler.ui.debug(e)
-      raise LockfileError, "Your lockfile is unreadable. Run `rm #{Bundler.default_lockfile.relative_path_from(SharedHelpers.pwd)}` " \
+      raise LockfileError, "Your lockfile is unreadable. Run `rm #{lockfile_name.relative_path_from(SharedHelpers.pwd)}` " \
         "and then `bundle install` to generate a new lockfile."
     end
 

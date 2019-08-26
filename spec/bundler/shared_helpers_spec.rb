@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Bundler::SharedHelpers do
+RSpec.describe Bundler::SharedHelpers, :needs_chdir do
   let(:ext_lock_double) { double(:ext_lock) }
 
   before do

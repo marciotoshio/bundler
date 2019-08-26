@@ -197,12 +197,11 @@ RSpec.describe "bundle install" do
     end
 
     it "reports the file exists" do
-      gemfile <<-G
+      install_gemfile <<-G, forgotten_command_line_options(:path => "bundle")
         source "#{file_uri_for(gem_repo1)}"
         gem "rack"
       G
 
-      bundle :install, forgotten_command_line_options(:path => "bundle")
       expect(err).to include("file already exists")
     end
   end

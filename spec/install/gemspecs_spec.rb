@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "bundle install" do
-  describe "when a gem has a YAML gemspec" do
+  describe "when a gem has a YAML gemspec", :needs_chdir do
     before :each do
       build_repo2 do
         build_gem "yaml_spec", :gemspec => :yaml
@@ -9,11 +9,10 @@ RSpec.describe "bundle install" do
     end
 
     it "still installs correctly" do
-      gemfile <<-G
+      install_gemfile <<-G
         source "#{file_uri_for(gem_repo2)}"
         gem "yaml_spec"
       G
-      bundle :install
       expect(err).to be_empty
     end
 

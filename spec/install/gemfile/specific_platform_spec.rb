@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe "bundle install with specific_platform enabled" do
+  let(:the_bundle) do
+    super(:bundle_dir => bundled_app)
+  end
+
   before do
     bundle "config set specific_platform true"
 

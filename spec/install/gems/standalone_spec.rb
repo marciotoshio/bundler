@@ -48,11 +48,10 @@ RSpec.shared_examples "bundle install --standalone" do
 
   describe "with simple gems" do
     before do
-      gemfile <<-G
+      install_gemfile! <<-G, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :dir => cwd)
         source "#{file_uri_for(gem_repo1)}"
         gem "rails"
       G
-      bundle! :install, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true)
     end
 
     let(:expected_gems) do
@@ -115,12 +114,11 @@ RSpec.shared_examples "bundle install --standalone" do
     before do
       build_git "devise", "1.0"
 
-      gemfile <<-G
+      install_gemfile! <<-G, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :dir => cwd)
         source "#{file_uri_for(gem_repo1)}"
         gem "rails"
         gem "devise", :git => "#{lib_path("devise-1.0")}"
       G
-      bundle! :install, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true)
     end
 
     let(:expected_gems) do
@@ -138,7 +136,7 @@ RSpec.shared_examples "bundle install --standalone" do
     before do
       build_git "devise", "1.0"
 
-      gemfile <<-G
+      install_gemfile! <<-G, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :dir => cwd)
         source "#{file_uri_for(gem_repo1)}"
         gem "rails"
 
@@ -147,7 +145,6 @@ RSpec.shared_examples "bundle install --standalone" do
           gem "rack-test"
         end
       G
-      bundle! :install, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true)
     end
 
     let(:expected_gems) do
@@ -228,11 +225,10 @@ RSpec.shared_examples "bundle install --standalone" do
 
     describe "simple gems" do
       before do
-        gemfile <<-G
+        install_gemfile! <<-G, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :artifice => "endpoint", :dir => cwd)
           source "#{source_uri}"
           gem "rails"
         G
-        bundle! :install, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :artifice => "endpoint")
       end
 
       let(:expected_gems) do
@@ -248,11 +244,10 @@ RSpec.shared_examples "bundle install --standalone" do
 
   describe "with --binstubs", :bundler => "< 3" do
     before do
-      gemfile <<-G
+      install_gemfile! <<-G, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :binstubs => true, :dir => cwd)
         source "#{file_uri_for(gem_repo1)}"
         gem "rails"
       G
-      bundle! :install, forgotten_command_line_options(:path => bundled_app("bundle")).merge(:standalone => true, :binstubs => true)
     end
 
     let(:expected_gems) do

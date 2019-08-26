@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "bundler plugin install" do
+RSpec.describe "bundler plugin install", :needs_chdir do
   before do
     build_repo2 do
       build_plugin "foo"
@@ -156,13 +156,11 @@ RSpec.describe "bundler plugin install" do
 
   context "Gemfile eval" do
     it "installs plugins listed in gemfile" do
-      gemfile <<-G
+      install_gemfile <<-G
         source '#{file_uri_for(gem_repo2)}'
         plugin 'foo'
         gem 'rack', "1.0.0"
       G
-
-      bundle "install"
 
       expect(out).to include("Installed plugin foo")
 

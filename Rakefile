@@ -20,9 +20,7 @@ module Rake
 end
 
 desc "Run specs"
-task :spec do
-  sh("bin/rspec")
-end
+task :spec => ["spec:sequential", "spec:parallel"]
 
 namespace :spec do
   def safe_task(&block)
@@ -30,6 +28,16 @@ namespace :spec do
     true
   rescue StandardError
     false
+  end
+
+  desc "Run parallel specs"
+  task :parallel do
+    sh("bin/parallel_rspec --test-options '--tag ~needs_chdir' spec/")
+  end
+
+  desc "Run sequential specs"
+  task :sequential do
+    sh("bin/rspec --tag needs_chdir --format progress")
   end
 
   desc "Ensure spec dependencies are installed"
@@ -93,12 +101,14 @@ namespace :spec do
     (branches + releases).each do |rg|
       desc "Run specs with RubyGems #{rg}"
       task "parallel_#{rg}" do
-        sh("bin/parallel_rspec spec/")
+        sh("bin/parallel_rspec --test-options '--tag ~needs_chdir' spec/")
       end
 
-      task rg do
-        sh("bin/rspec --format progress")
+      task "sequential_#{rg}" do
+        sh("bin/rspec --tag needs_chdir --format progress")
       end
+
+      task rg => ["parallel_#{rg}", "sequential_#{rg}"]
 
       # Create tasks like spec:rubygems:v1.8.3:sudo to run the sudo specs
       namespace rg do
