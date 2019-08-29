@@ -81,8 +81,7 @@ module Spec
       deps = gems.map {|name, req| "'#{name}:#{req}'" }.join(" ")
       gem = Path.gem_bin
       cmd = "#{gem} install #{deps} --no-document --conservative"
-      puts cmd
-      system(cmd) || raise("Installing gems #{deps} for the tests to use failed!")
+      system(cmd, :out => File::NULL) || raise("Installing gems #{deps} for the tests to use failed!")
     end
   end
 end
