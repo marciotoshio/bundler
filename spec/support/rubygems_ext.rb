@@ -78,10 +78,7 @@ module Spec
     end
 
     def self.install_gems(gems)
-      reqs, no_reqs = gems.partition {|_, req| !req.nil? && !req.split(" ").empty? }
-      no_reqs.map!(&:first)
-      reqs.map! {|name, req| "'#{name}:#{req}'" }
-      deps = reqs.concat(no_reqs).join(" ")
+      deps = gems.map {|name, req| "'#{name}:#{req}'" }.join(" ")
       gem = Path.gem_bin
       cmd = "#{gem} install #{deps} --no-document --conservative"
       puts cmd
