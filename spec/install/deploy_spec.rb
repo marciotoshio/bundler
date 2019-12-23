@@ -286,22 +286,22 @@ RSpec.describe "install with --deployment or --frozen" do
       end
 
       before do
-        install_gemfile <<-G
-        source "http://user_name:password@localgemserver.test/"
-        gem "rack"
+          install_gemfile <<-G
+          source "http://user_name:password@localgemserver.test/"
+          gem "rack"
         G
 
         lockfile <<-G
-        GEM
-          remote: http://localgemserver.test/
-          specs:
-            rack (1.0.0)
+          GEM
+            remote: http://localgemserver.test/
+            specs:
+              rack (1.0.0)
 
-        PLATFORMS
-          #{local}
+          PLATFORMS
+            #{local}
 
-        DEPENDENCIES
-          rack
+          DEPENDENCIES
+            rack
         G
 
         bundle! "config set --local deployment true"
