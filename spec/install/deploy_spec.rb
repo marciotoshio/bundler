@@ -257,6 +257,30 @@ RSpec.describe "install with --deployment or --frozen" do
       expect(err).not_to include("You have changed in the Gemfile")
     end
 
+    it "remembers that the bundle is frozen at runtime" do
+      bundle! :lock
+
+      bundle! "config set --local deployment true"
+
+      gemfile <<-G
+        source "#{file_uri_for(gem_repo1)}"
+        gem "rack", "1.0.0"
+        gem "rack-obama"
+      G
+
+      expect(the_bundle).not_to include_gems "rack 1.0.0"
+      expect(err).to include strip_whitespace(<<-E).strip
+  The dependencies in your gemfile changed
+
+  You have added to the Gemfile:
+  * rack (= 1.0.0)
+  * rack-obama
+
+  You have deleted from the Gemfile:
+  * rack
+      E
+    end
+
     it "explodes if you unpin a source, leaving it pinned somewhere else" do
       build_lib "foo", :path => lib_path("rack/foo")
       build_git "rack", :path => lib_path("rack")
@@ -279,99 +303,76 @@ RSpec.describe "install with --deployment or --frozen" do
       expect(err).not_to include("You have added to the Gemfile")
       expect(err).not_to include("You have deleted from the Gemfile")
     end
+  end
 
-    context "when replacing a host with the same host with credentials" do
-      before do
-        gemfile <<-G
-          source "http://user_name:password@localgemserver.test/"
-          gem "rack"
-        G
+  context "when replacing a host with the same host with credentials" do
+    before do
+      bundle! "install"
+      gemfile <<-G
+        source "http://user_name:password@localgemserver.test/"
+        gem "rack"
+      G
 
-        lockfile <<-G
-          GEM
-            remote: http://localgemserver.test/
-            specs:
-              rack (1.0.0)
+      lockfile <<-G
+        GEM
+          remote: http://localgemserver.test/
+          specs:
+            rack (1.0.0)
 
-          PLATFORMS
-            #{local}
+        PLATFORMS
+          #{local}
 
-          DEPENDENCIES
-            rack
-        G
+        DEPENDENCIES
+          rack
+      G
 
-        bundle! "config set --local deployment true"
+      bundle! "config set --local deployment true"
+    end
+
+    it "prevents the replace by default" do
+      bundle :install
+
+      expect(err).to match(/The list of sources changed/)
+    end
+
+    context "when allow_deployment_source_credential_changes is true" do
+      before { bundle! "config set allow_deployment_source_credential_changes true" }
+
+      it "allows the replace" do
+        bundle! :install
+
+        expect(out).to match(/Bundle complete!/)
       end
+    end
 
-      it "prevents the replace by default" do
+    context "when allow_deployment_source_credential_changes is false" do
+      before { bundle! "config set allow_deployment_source_credential_changes false" }
+
+      it "prevents the replace" do
         bundle :install
 
         expect(err).to match(/The list of sources changed/)
       end
+    end
 
-      context "when allow_deployment_source_credential_changes is true" do
-        before { bundle! "config set allow_deployment_source_credential_changes true" }
+    context "when BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES env var is true" do
+      before { ENV["BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES"] = "true" }
 
-        it "allows the replace" do
-          bundle! :install
+      it "allows the replace" do
+        bundle :install
 
-          expect(out).to match(/Bundle complete!/)
-        end
-      end
-
-      context "when allow_deployment_source_credential_changes is false" do
-        before { bundle! "config set allow_deployment_source_credential_changes false" }
-
-        it "prevents the replace" do
-          bundle :install
-
-          expect(err).to match(/The list of sources changed/)
-        end
-      end
-
-      context "when BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES env var is true" do
-        before { ENV["BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES"] = "true" }
-
-        it "allows the replace" do
-          bundle :install
-
-          expect(out).to match(/Bundle complete!/)
-        end
-      end
-
-      context "when BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES env var is false" do
-        before { ENV["BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES"] = "false" }
-
-        it "prevents the replace" do
-          bundle :install
-
-          expect(err).to match(/The list of sources changed/)
-        end
+        expect(out).to match(/Bundle complete!/)
       end
     end
 
-    it "remembers that the bundle is frozen at runtime" do
-      bundle! :lock
+    context "when BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES env var is false" do
+      before { ENV["BUNDLE_ALLOW_DEPLOYMENT_SOURCE_CREDENTIAL_CHANGES"] = "false" }
 
-      bundle! "config set --local deployment true"
+      it "prevents the replace" do
+        bundle :install
 
-      gemfile <<-G
-        source "#{file_uri_for(gem_repo1)}"
-        gem "rack", "1.0.0"
-        gem "rack-obama"
-      G
-
-      expect(the_bundle).not_to include_gems "rack 1.0.0"
-      expect(err).to include strip_whitespace(<<-E).strip
-The dependencies in your gemfile changed
-
-You have added to the Gemfile:
-* rack (= 1.0.0)
-* rack-obama
-
-You have deleted from the Gemfile:
-* rack
-      E
+        expect(err).to match(/The list of sources changed/)
+      end
     end
   end
 
